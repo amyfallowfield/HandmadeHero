@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <dsound.h>
 #include <windows.h>
@@ -387,7 +388,11 @@ int CALLBACK WinMain(
     LPSTR CommandLine,
     int ShowCode
 )
-{
+{    
+    LARGE_INTEGER PerfCounterFrequencyResult;
+    QueryPerformanceFrequency(&PerfCounterFrequencyResult);
+    int64_t PerfCounterFrequency = PerfCounterFrequencyResult.QuadPart;
+
     Win23LoadXInput();
 
     WNDCLASSA WindowClass = {0};
@@ -434,6 +439,10 @@ int CALLBACK WinMain(
             Win32InitDSound(Window, SoundOutput.SamplesPerSecond, SoundOutput.SecondaryBufferSize);
             Win32FillSoundBuffer(&SoundOutput, 0, SoundOutput.SecondaryBufferSize);
             GlobalSecondaryBuffer->lpVtbl->Play(GlobalSecondaryBuffer, 0, 0, DSBPLAY_LOOPING);
+
+            LARGE_INTEGER LastCounter;
+            QueryPerformanceCounter(&LastCounter); 
+            int64_t LastCycleCount = __rdtsc();
 
             while (Running)
             {
@@ -535,6 +544,23 @@ int CALLBACK WinMain(
                 HDC DeviceContext = GetDC(Window);
                 struct Win32WindowDimensions Dimensions = GetWindowDimensions(Window);
                 Win32DisplayBufferInWindow(&GlobalBackBuffer, Dimensions.Width, Dimensions.Height, DeviceContext, 0, 0, Dimensions.Width, Dimensions.Height);
+            
+                LARGE_INTEGER EndCounter;
+                QueryPerformanceCounter(&EndCounter);
+                int64_t EndCycleCount = __rdtsc();
+
+                int64_t CyclesElapsed = EndCycleCount - LastCycleCount;
+                int64_t CounterElapsed = EndCounter.QuadPart - LastCounter.QuadPart;
+                float MegaCyclesElapsed = (float)(CyclesElapsed) / (1000.0f * 1000.0f);
+                float MSPerFrame = (float)(1000 * CounterElapsed) / PerfCounterFrequency;
+                float FPS = (float)PerfCounterFrequency / CounterElapsed;
+
+                char Buffer[256];
+                sprintf(Buffer, "%.02fms/frame, %.02ffps, %.02fmega-cycles/frame\n", MSPerFrame, FPS, MegaCyclesElapsed);
+                OutputDebugStringA(Buffer);
+
+                LastCounter = EndCounter;
+                LastCycleCount = EndCycleCount;
             }
         }
         else
