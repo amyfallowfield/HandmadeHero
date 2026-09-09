@@ -7,7 +7,9 @@
 #include <windows.h>
 #include <Xinput.h>
 
-struct Win32OffscreenBuffer
+#include "Handmade.h"
+
+struct Win32OffScreenBuffer
 {
     BITMAPINFO Info;
     void *Memory;
@@ -24,7 +26,7 @@ struct Win32WindowDimensions
 
 static bool Running;
 static bool SoundIsPlaying = false;
-static struct Win32OffscreenBuffer GlobalBackBuffer;
+static struct Win32OffScreenBuffer GlobalBackBuffer;
 static LPDIRECTSOUNDBUFFER GlobalSecondaryBuffer;
 
 #define Pi32 3.14159265359f
@@ -149,27 +151,7 @@ struct Win32WindowDimensions GetWindowDimensions(HWND Window)
     return(Result);
 }
 
-static void RenderWeirdGradient(struct Win32OffscreenBuffer *Buffer, int XOffset, int YOffset)
-{
-    uint32_t *Row = (uint32_t *)Buffer->Memory;
-    for (int Y = 0; Y < Buffer->Height; ++Y)
-    {
-        uint32_t *Pixel = (uint32_t *)Row;
-        for (int X = 0; X < Buffer->Width; ++X)
-        {
-            // BBGGRRxx
-            uint8_t Blue = (X - XOffset);
-            uint8_t Green = (Y - YOffset);
-            uint8_t Red = 255;
-
-            *Pixel++ = (Blue | Green << 8 | Red << 16);
-        }
-
-        Row += Buffer->Width;
-    }
-}
-
-static void Win32ResizeDIBSection(struct Win32OffscreenBuffer *Buffer, int Width, int Height)
+static void Win32ResizeDIBSection(struct Win32OffScreenBuffer *Buffer, int Width, int Height)
 {
     if (Buffer->Memory)
     {
@@ -192,7 +174,7 @@ static void Win32ResizeDIBSection(struct Win32OffscreenBuffer *Buffer, int Width
 }
 
 static void Win32DisplayBufferInWindow(
-    struct Win32OffscreenBuffer *Buffer,
+    struct Win32OffScreenBuffer *Buffer,
     int WindowWidth,
     int WindowHeight,
     HDC DeviceContext,
@@ -511,7 +493,13 @@ int CALLBACK WinMain(
                 XInputSetState(0, &Vibration);
                 */
 
-                RenderWeirdGradient(&GlobalBackBuffer, XOffset, YOffset);
+                struct OffscreenBuffer Buffer = {0};
+                Buffer.Memory = GlobalBackBuffer.Memory;
+                Buffer.Width = GlobalBackBuffer.Width;
+                Buffer.Height = GlobalBackBuffer.Height;
+                Buffer.BytesPerPixel = GlobalBackBuffer.BytesPerPixel;
+
+                GameUpdateAndRender(&Buffer, XOffset, YOffset);
 
                 DWORD PlayCursor;
                 DWORD WriteCursor;
@@ -555,9 +543,11 @@ int CALLBACK WinMain(
                 float MSPerFrame = (float)(1000 * CounterElapsed) / PerfCounterFrequency;
                 float FPS = (float)PerfCounterFrequency / CounterElapsed;
 
+                /*
                 char Buffer[256];
                 sprintf(Buffer, "%.02fms/frame, %.02ffps, %.02fmega-cycles/frame\n", MSPerFrame, FPS, MegaCyclesElapsed);
                 OutputDebugStringA(Buffer);
+                */
 
                 LastCounter = EndCounter;
                 LastCycleCount = EndCycleCount;
