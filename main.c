@@ -184,6 +184,7 @@ static void Win32DisplayBufferInWindow(
     int Height
 )
 {
+    SetStretchBltMode(DeviceContext, COLORONCOLOR);
     StretchDIBits(
         DeviceContext,
         0, 0, WindowWidth, WindowHeight,
