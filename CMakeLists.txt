@@ -4,6 +4,7 @@ project(HandmadeHero C)
 
 add_executable(HandmadeHero WIN32
     main.c
+    handmade.c
 )
 
 target_link_libraries(HandmadeHero PRIVATE

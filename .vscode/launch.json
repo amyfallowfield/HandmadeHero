@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "HandmadeHero",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/Build/HandmadeHero.exe",
+      "cwd": "C:/Users/janef/Documents/AMY-WORK/HandmadeHero",
+      "stopAtEntry": false,
+      "externalConsole": true,
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+      "preLaunchTask": "CMake: build HandmadeHero"
+    }
+  ]
+}
