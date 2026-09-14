@@ -42,8 +42,31 @@ static void RenderWeirdGradient(struct OffscreenBuffer *Buffer, int XOffset, int
     }
 }
 
-void GameUpdateAndRender(struct OffscreenBuffer *Buffer, int BlueOffset, int GreenOffset, struct SoundOutputBuffer *SoundBuffer, int ToneHz)
+void GameUpdateAndRender(struct GameInput Input, struct OffscreenBuffer *Buffer, struct SoundOutputBuffer *SoundBuffer)
 {
+    static int BlueOffset = 0;
+    static int GreenOffset = 0;
+    static int ToneHz = 256;
+
+    struct GameControllerInput *Input0 = &Input.Controllers[0];
+
+    if(Input0->IsAnalogue)
+    {
+        BlueOffset += (int)(4.0f * Input0->EndX);
+        ToneHz = 256 + (int)(128.0f * Input0->EndY);
+    }
+    else
+    {
+
+    }
+
+    //Input->AButtonEndedDown;
+    //Input->AButtonHalfTransitionCount;
+    if(Input0->Down.EndedDown)
+    {
+        GreenOffset += 1;
+    }
+
     GameOutputSound(SoundBuffer, ToneHz);
     RenderWeirdGradient(Buffer, BlueOffset, GreenOffset);
 }
