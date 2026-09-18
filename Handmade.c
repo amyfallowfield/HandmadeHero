@@ -2,8 +2,6 @@
 
 #include "Handmade.h"
 
-#define Pi32 3.14159265359f
-
 static void GameOutputSound(struct SoundOutputBuffer *SoundBuffer, int ToneHz)
 {
     static float TSine;
@@ -42,18 +40,23 @@ static void RenderWeirdGradient(struct OffscreenBuffer *Buffer, int XOffset, int
     }
 }
 
-void GameUpdateAndRender(struct GameInput Input, struct OffscreenBuffer *Buffer, struct SoundOutputBuffer *SoundBuffer)
+void GameUpdateAndRender(struct GameMemory *Memory, struct GameInput Input, struct OffscreenBuffer *Buffer, struct SoundOutputBuffer *SoundBuffer)
 {
-    static int BlueOffset = 0;
-    static int GreenOffset = 0;
-    static int ToneHz = 256;
+    Assert(sizeof(struct GameState) <= Memory->PermanentStorageSize);
+    struct GameState *GameState = (struct GameState *)Memory->PermanentStorage;
+
+    if(!Memory->IsInitialised)
+    {
+        GameState->ToneHz = 256;
+        Memory->IsInitialised = true;
+    }
 
     struct GameControllerInput *Input0 = &Input.Controllers[0];
 
     if(Input0->IsAnalogue)
     {
-        BlueOffset += (int)(4.0f * Input0->EndX);
-        ToneHz = 256 + (int)(128.0f * Input0->EndY);
+        GameState->BlueOffset += (int)(4.0f * Input0->EndX);
+        GameState->ToneHz = 256 + (int)(128.0f * Input0->EndY);
     }
     else
     {
@@ -64,9 +67,9 @@ void GameUpdateAndRender(struct GameInput Input, struct OffscreenBuffer *Buffer,
     //Input->AButtonHalfTransitionCount;
     if(Input0->Down.EndedDown)
     {
-        GreenOffset += 1;
+        GameState->GreenOffset += 1;
     }
 
-    GameOutputSound(SoundBuffer, ToneHz);
-    RenderWeirdGradient(Buffer, BlueOffset, GreenOffset);
+    GameOutputSound(SoundBuffer, GameState->ToneHz);
+    RenderWeirdGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
 }

@@ -6,6 +6,20 @@
 
 #include <windows.h>
 
+#define Pi32 3.14159265359f
+
+#define ArrayCount(Array) (sizeof(Array) / sizeof(Array[0]))
+#define Megabytes(Value) ((int64_t)Value * 1024 * 1024)
+#define Gigabytes(Value) ((int64_t)Value * 1024 * 1024 * 1024)
+#define Terabytes(Value) ((int64_t)Value * 1024 * 1024 * 1024 * 1024)
+
+#if HANDMADE_SLOW
+#define Assert(Expression) \
+    if(!(Expression)) {*(volatile int *)0 = 0;}
+#else
+#define Assert(Expression)
+#endif
+
 struct SoundOutputBuffer
 {
     int SamplesPerSecond;
@@ -64,6 +78,22 @@ struct GameInput
     struct GameControllerInput Controllers[4];
 };
 
-void GameUpdateAndRender(struct GameInput, struct OffscreenBuffer *Buffer, struct SoundOutputBuffer *SoundBuffer);
+struct GameState
+{
+    int ToneHz;
+    int GreenOffset;
+    int BlueOffset;
+};
+
+struct GameMemory
+{
+    bool IsInitialised;
+    uint64_t PermanentStorageSize;
+    void *PermanentStorage;
+    uint64_t TransientStorageSize;
+    void *TransientStorage;
+};
+
+void GameUpdateAndRender(struct GameMemory *Memory, struct GameInput, struct OffscreenBuffer *Buffer, struct SoundOutputBuffer *SoundBuffer);
 
 #endif

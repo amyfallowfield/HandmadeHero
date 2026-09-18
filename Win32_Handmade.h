@@ -1,10 +1,6 @@
 #ifndef WIN32_HANDMADE_H
 #define WIN32_HANDMADE_H
 
-#define Pi32 3.14159265359f
-
-#define ArrayCount(Array) (sizeof(Array) / sizeof(Array[0]))
-
 struct Win32OffScreenBuffer
 {
     BITMAPINFO Info;
